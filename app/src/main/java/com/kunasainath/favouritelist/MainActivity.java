@@ -47,14 +47,7 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
         preferenceManager = new CategoryPreferenceManager(this);
 
         categories = preferenceManager.getAllCategoriesFromSharedPreferences();
-        Collections.sort(categories, new Comparator<Category>() {
-            @Override
-            public int compare(Category a, Category b) {
-                if(a.getCategory().compareTo(b.getCategory()) > 0){
-                    return 1;
-                }return -1;
-            }
-        });
+        Collections.sort(categories, UtilityClass.getSorter());
 
         adapter = new CategoryAdapter(categories , MainActivity.this);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -138,14 +131,7 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
 
     void updateCategories(){
         ArrayList<Category> categories = preferenceManager.getAllCategoriesFromSharedPreferences();
-        Collections.sort(categories, new Comparator<Category>() {
-            @Override
-            public int compare(Category a, Category b) {
-                if(a.getCategory().compareTo(b.getCategory()) > 1){
-                    return 1;
-                }return -1;
-            }
-        });
+        Collections.sort(categories, UtilityClass.getSorter());
         CategoryAdapter adapter = new CategoryAdapter(categories, this);
         mRecyclerView.setAdapter(adapter);
     }

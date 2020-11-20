@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.kunasainath.favouritelist.Category;
 import com.kunasainath.favouritelist.R;
+import com.kunasainath.favouritelist.UtilityClass;
 import com.kunasainath.favouritelist.view_holders.CategoryViewHolder;
 
 import java.util.ArrayList;
@@ -59,14 +60,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
 
     public void addCategory(Category category){
         categories.add(category);
-        Collections.sort(categories, new Comparator<Category>() {
-            @Override
-            public int compare(Category a, Category b) {
-                if(a.getCategory().compareTo(b.getCategory()) > 0){
-                    return 1;
-                }return -1;
-            }
-        });
+        Collections.sort(categories, UtilityClass.getSorter());
         notifyDataSetChanged();
         notifyItemInserted(categories.size()-1);
     }

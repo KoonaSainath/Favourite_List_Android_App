@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kunasainath.favouritelist.adapters.SubCategoryAdapter;
 
+import java.util.Collections;
+
 public class SubCategoryActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
@@ -35,6 +37,7 @@ public class SubCategoryActivity extends AppCompatActivity {
 
         category = (Category) getIntent().getSerializableExtra(MainActivity.CATEGORY_KEY);
         setTitle(category.getCategory());
+        Collections.sort(category.getSubCategories(), UtilityClass.getStringSorter());
         adapter = new SubCategoryAdapter(category);
         mRecyclerView.setAdapter(adapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -62,9 +65,10 @@ public class SubCategoryActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String subCategoryName = edtSubCategory.getText().toString();
                         category.getSubCategories().add(subCategoryName);
+                        Collections.sort(category.getSubCategories(), UtilityClass.getStringSorter());
 
                         SubCategoryAdapter adapter = (SubCategoryAdapter) mRecyclerView.getAdapter();
-                        adapter.notifyItemInserted(category.getSubCategories().size()-1);
+                        adapter.notifyDataSetChanged();
                         dialogInterface.dismiss();
                     }
                 }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
