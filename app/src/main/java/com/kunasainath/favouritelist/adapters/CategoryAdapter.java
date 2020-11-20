@@ -62,6 +62,5 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
         categories.add(category);
         Collections.sort(categories, UtilityClass.getSorter());
         notifyDataSetChanged();
-        notifyItemInserted(categories.size()-1);
     }
 }

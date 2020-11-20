@@ -36,4 +36,8 @@ public class SubCategoryAdapter extends RecyclerView.Adapter<SubCategoryViewHold
     public int getItemCount() {
         return category.getSubCategories().size();
     }
+
+    public void setCategory(Category category){
+        this.category = category;
+    }
 }

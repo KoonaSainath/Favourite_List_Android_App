@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,7 +23,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kunasainath.favouritelist.adapters.CategoryAdapter;
+import com.kunasainath.favouritelist.adapters.SubCategoryAdapter;
 import com.kunasainath.favouritelist.fragments.CategoryFragment;
+import com.kunasainath.favouritelist.fragments.SubCategoryFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,8 +34,12 @@ import java.util.Comparator;
 public class MainActivity extends AppCompatActivity implements CategoryFragment.CategoryFragmentInterface {
 
     private FloatingActionButton fabAddCategory;
-    private ArrayList<Category> categories;
+
+    private boolean isTablet = false;
+
     private CategoryFragment mCategoryFragment = CategoryFragment.newInstance();
+    private SubCategoryFragment mSubCategoryFragment;
+    private FrameLayout subCategoryFragmentContainer;
 
     public static final String CATEGORY_KEY = "Category key";
     public static final int ACTIVITY_REQUEST_KEY = 7;
@@ -44,6 +51,10 @@ public class MainActivity extends AppCompatActivity implements CategoryFragment.
         setContentView(R.layout.activity_main);
 
         initializeViews();
+
+        subCategoryFragmentContainer = findViewById(R.id.sub_category_fragment_container);
+
+        isTablet = (subCategoryFragmentContainer != null);
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -110,9 +121,63 @@ public class MainActivity extends AppCompatActivity implements CategoryFragment.
     }
 
     public void moveToSubCategory(Category category){
-        Intent intent = new Intent(MainActivity.this, SubCategoryActivity.class);
-        intent.putExtra(CATEGORY_KEY, category);
-        startActivityForResult(intent, ACTIVITY_REQUEST_KEY);
+        if(isTablet){
+
+            if(mSubCategoryFragment != null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(mSubCategoryFragment).
+                        commit();
+
+                mSubCategoryFragment = null;
+            }
+
+            mSubCategoryFragment = SubCategoryFragment.newInstance(category);
+
+            setTitle(category.getCategory());
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.sub_category_fragment_container, mSubCategoryFragment)
+                    .addToBackStack(null)
+                    .commit();
+
+            fabAddCategory.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                @Override
+                public void onClick(View view) {
+                    displayAlertDialogForSubCategory();
+                }
+            });
+
+        }else {
+            Intent intent = new Intent(MainActivity.this, SubCategoryActivity.class);
+            intent.putExtra(CATEGORY_KEY, category);
+            startActivityForResult(intent, ACTIVITY_REQUEST_KEY);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if(mSubCategoryFragment != null) {
+
+            setTitle(getString(R.string.app_name));
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .remove(mSubCategoryFragment)
+                    .commit();
+        }
+
+        fabAddCategory.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onClick(View view) {
+                createAlertDialog();
+            }
+        });
+
+        super.onBackPressed();
+
     }
 
     @Override
@@ -137,5 +202,37 @@ public class MainActivity extends AppCompatActivity implements CategoryFragment.
     @Override
     public void fragmentCategoryTapped(Category category) {
         moveToSubCategory(category);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void displayAlertDialogForSubCategory(){
+        final EditText edtSubCategory = new EditText(this);
+        edtSubCategory.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        edtSubCategory.setBackground(getDrawable(R.drawable.edittext_style));
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.enter_sub_category)
+                .setView(edtSubCategory)
+                .setCancelable(false)
+                .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String subCategoryName = edtSubCategory.getText().toString();
+                        Category category = mSubCategoryFragment.getCategory();
+                        category.getSubCategories().add(subCategoryName);
+                        Collections.sort(mSubCategoryFragment.getCategory().getSubCategories(), UtilityClass.getStringSorter());
+
+                        mCategoryFragment.getPreferenceManager().addCategoryToSharedPreferences(category);
+
+                        SubCategoryAdapter adapter = (SubCategoryAdapter) mSubCategoryFragment.getRecyclerView().getAdapter();
+                        adapter.setCategory(category);
+                        adapter.notifyDataSetChanged();
+                        dialogInterface.dismiss();
+                    }
+                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        }).create().show();
     }
 }
