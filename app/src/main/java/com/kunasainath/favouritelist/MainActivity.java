@@ -22,17 +22,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kunasainath.favouritelist.adapters.CategoryAdapter;
+import com.kunasainath.favouritelist.fragments.CategoryFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class MainActivity extends AppCompatActivity implements CategoryAdapter.AdapterItemClickedInterface {
-    private RecyclerView mRecyclerView;
+public class MainActivity extends AppCompatActivity implements CategoryFragment.CategoryFragmentInterface {
+
     private FloatingActionButton fabAddCategory;
-    private CategoryAdapter adapter;
     private ArrayList<Category> categories;
-    private CategoryPreferenceManager preferenceManager;
+    private CategoryFragment mCategoryFragment = CategoryFragment.newInstance();
+
     public static final String CATEGORY_KEY = "Category key";
     public static final int ACTIVITY_REQUEST_KEY = 7;
 
@@ -44,14 +45,11 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
 
         initializeViews();
 
-        preferenceManager = new CategoryPreferenceManager(this);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.category_fragment_container, mCategoryFragment)
+                .commit();
 
-        categories = preferenceManager.getAllCategoriesFromSharedPreferences();
-        Collections.sort(categories, UtilityClass.getSorter());
-
-        adapter = new CategoryAdapter(categories , MainActivity.this);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setAdapter(adapter);
         fabAddCategory.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
@@ -61,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
         });
     }
     private void initializeViews(){
-        mRecyclerView = findViewById(R.id.maincategories);
         fabAddCategory = findViewById(R.id.addcategory);
     }
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -82,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
                     Toast.makeText(MainActivity.this, getString(R.string.invalid_category), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                adapter.addCategory(category);
+                mCategoryFragment.getAdapter().addCategory(category);
 
-                preferenceManager.addCategoryToSharedPreferences(category);
+                mCategoryFragment.getPreferenceManager().addCategoryToSharedPreferences(category);
                 Toast.makeText(MainActivity.this, getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
         }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -124,20 +121,21 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.A
 
         if(requestCode == ACTIVITY_REQUEST_KEY && resultCode == Activity.RESULT_OK && data != null){
             Category category = (Category) data.getSerializableExtra(CATEGORY_KEY);
-            preferenceManager.addCategoryToSharedPreferences(category);
+            mCategoryFragment.getPreferenceManager().addCategoryToSharedPreferences(category);
             updateCategories();
         }
     }
 
     void updateCategories(){
-        ArrayList<Category> categories = preferenceManager.getAllCategoriesFromSharedPreferences();
+        ArrayList<Category> categories = mCategoryFragment.getPreferenceManager().getAllCategoriesFromSharedPreferences();
         Collections.sort(categories, UtilityClass.getSorter());
-        CategoryAdapter adapter = new CategoryAdapter(categories, this);
-        mRecyclerView.setAdapter(adapter);
+        CategoryAdapter adapter = new CategoryAdapter(categories, mCategoryFragment);
+        mCategoryFragment.getRecyclerView().setAdapter(adapter);
     }
 
+
     @Override
-    public void anItemIsClicked(Category category) {
+    public void fragmentCategoryTapped(Category category) {
         moveToSubCategory(category);
     }
 }

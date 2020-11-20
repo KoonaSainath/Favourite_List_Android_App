@@ -7,4 +7,6 @@
     <string name="success">Category added</string>
     <string name="add_category">Add a category</string>
     <string name="enter_sub_category">Enter a sub-category name</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
